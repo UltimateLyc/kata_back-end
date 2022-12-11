@@ -132,8 +132,16 @@ const addZoo = async (req, res) => {
         console.log('pais: ',exTexto.test( pais))
         console.log('tamanio: ', exReal.test(tamanio))
 
+        // Validaciones contra expresiones regulares
         if((!exTexto.test(nombre) || !exTexto.test(ciudad) || !exTexto.test(pais) || !exReal.test(tamanio) || !exReal.test(presupuesto_anual)) && !exNumero.test(tamanio) && !exNumero.test(presupuesto_anual)){
             res.status(200).json({'Status': 'falso', 'message': 'Tu registro no se pudo registrar'})
+            return
+        }
+
+        // Validacion de registros repetidos
+        let aux = await pool.query('SELECT * FROM zoo WHERE nombre = $1', [nombre])
+        if(aux.rowCount != 0){
+            res.status(200).json({'Status': 'falso', 'message': 'Tu registro ya existe'})
             return
         }
 
