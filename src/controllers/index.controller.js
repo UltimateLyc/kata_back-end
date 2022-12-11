@@ -117,21 +117,34 @@ const getAnimales = async (req,res) => {
 
 const addZoo = async (req, res) => {
     try {
-        //Expresion regular
-        let expresion = new RegExp('\D')
+        // Expresion regular
+        // Solo letras ^[a-zA-Z]+$
+        // Solo numeros ^[0-9]*$
+        // Solo numeros con punto decimal ^[0-9]+[.]+[0-9]*$
+        let exTexto = new RegExp('^[a-zA-Z]+$')
+        let exNumero = new RegExp('^[0-9]*$')
+        let exReal = new RegExp('^[0-9]+[.]+[0-9]*$')
 
         const {nombre, ciudad, pais, tamanio, presupuesto_anual} = req.body
         
-        console.log(nombre.match(expresion)) // match compara la expresion regular con el dato enviado 
+        console.log('nombre: ',exTexto.test( nombre)) // test compara la expresion regular con el dato enviado 
+        console.log('ciudad: ',exTexto.test( ciudad))
+        console.log('pais: ',exTexto.test( pais))
+        console.log('tamanio: ', exReal.test(tamanio))
+
+        if((!exTexto.test(nombre) || !exTexto.test(ciudad) || !exTexto.test(pais) || !exReal.test(tamanio) || !exReal.test(presupuesto_anual)) && !exNumero.test(tamanio) && !exNumero.test(presupuesto_anual)){
+            res.status(200).json({'Status': 'falso', 'message': 'Tu registro no se pudo registrar'})
+            return
+        }
 
         //Envio de datos a la BD
         await pool.query(
             'INSERT INTO zoo (nombre, ciudad, pais, tamanio, presupuesto_anual) VALUES ($1, $2, $3, $4, $5)', 
             [nombre, ciudad, pais, tamanio, presupuesto_anual]
         )
-
         //res.status(200).json(req.body) // req.body nos muestra los valores enviados en tipo POST
         res.status(200).json({'Status': 'ok', 'message': 'Tu registro fue exitoso'})
+        
     } catch (error) {
         res.status(500).json({'error': error.message})
     }
