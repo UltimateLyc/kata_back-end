@@ -177,6 +177,50 @@ const deleteZoo = async (req, res) => {
     }
 }
 
+const updateZoo = async (req, res) => {
+    try {
+        // UPDATE zoo set nombre = 'Chapultepec' WHERE nombre = 'Paris London'
+        // 1. Necesitamos 
+        let exTexto =/^[a-zA-Z\s]+$/ // otra forma de generer el RegExp
+        let exNumero = new RegExp('^[0-9]*$')
+        let exReal = new RegExp('^[0-9]+[.]+[0-9]*$')
+
+        const {nombre, tamanio, presupuesto_anual, tipo_modificacion, id_zoo} = req.body
+
+        // Validaciones contra expresiones regulares
+        if(!exTexto.test(nombre) || !exReal.test(tamanio) || !exReal.test(presupuesto_anual) 
+        && !exNumero.test(tamanio) && !exNumero.test(presupuesto_anual)){
+            res.status(200).json({'Status': 'falso', 'message': 'Tu registro no se pudo registrar'})
+            return
+        }
+
+        // 1. Solo por nombre
+        // 2. Solo por tamaño
+        // 3. Solo por presupuesto anual
+        // 4. nombre y tamaño
+        // 5. nombre y presupuesto anual
+        // 6. tamaño y presupuesto anual
+        // 7. nombre, tamaño y presupuesto anual
+
+        let dictionary = {
+            '1' : await pool.query('UPDATE zoo set nombre = $1 WHERE id_zoo = $2', [nombre, id_zoo]),
+            '2' : await pool.query('UPDATE zoo set tamanio = $1 WHERE id_zoo = $2', [tamanio, id_zoo]),
+            '3' : await pool.query('UPDATE zoo set presupuesto_anual = $1 WHERE id_zoo = $2', [presupuesto_anual, id_zoo]),
+            '4' : await pool.query('UPDATE zoo set nombre = $1, tamanio = $2 WHERE id_zoo = $3', [nombre,tamanio, id_zoo]),
+            '5' : await pool.query('UPDATE zoo set nombre = $1, presupuesto_anual = $2 WHERE id_zoo = $3', [nombre,presupuesto_anual, id_zoo]),
+            '6' : await pool.query('UPDATE zoo set tamanio = $1, presupuesto_anual = $2 WHERE id_zoo = $3', [tamanio,presupuesto_anual, id_zoo]),
+            '7' : await pool.query('UPDATE zoo set nombre = $1, tamanio = $2, presupuesto_anual = $3 WHERE id_zoo = $4', [nombre,tamanio,presupuesto_anual, id_zoo]),
+        }
+
+        response = dictionary[tipo_modificacion]
+
+        res.status(200).json({'Status': 'ok', 'message': 'Tu registro fue actualizado exitosamente'})
+        
+    } catch (error) {
+        res.status(500).json({'error': error.message})
+    }
+}
+
 const sinDatos = (consulta, res) => {
     if(consulta.rowCount === 0){
         res.status(200).json({'Status': 'No existe registro'})
@@ -192,5 +236,6 @@ module.exports = {
     getZoo,
     getEspecies,
     addZoo,
-    deleteZoo
+    deleteZoo,
+    updateZoo
 }
