@@ -121,7 +121,8 @@ const addZoo = async (req, res) => {
         // Solo letras ^[a-zA-Z]+$
         // Solo numeros ^[0-9]*$
         // Solo numeros con punto decimal ^[0-9]+[.]+[0-9]*$
-        let exTexto = new RegExp('^[a-zA-Z]+$')
+        // Solo letras y espacios /^[a-zA-Z\s]+$/
+        let exTexto =/^[a-zA-Z\s]+$/ // otra forma de generer el RegExp
         let exNumero = new RegExp('^[0-9]*$')
         let exReal = new RegExp('^[0-9]+[.]+[0-9]*$')
 
@@ -158,6 +159,24 @@ const addZoo = async (req, res) => {
     }
 }
 
+const deleteZoo = async (req, res) => {
+    try {
+        const {id_zoo, nombre} = req.body
+
+        if(id_zoo != ''){
+            console.log('Estamos borrando por id Zoo')
+            await pool.query('DELETE FROM zoo WHERE nombre = $1 AND id_zoo = $2', [nombre, id_zoo])
+            res.status(200).json({'Status': 'ok', 'message': 'Tu registro fue eliminado exitosamente'})
+        }
+
+        await pool.query('DELETE FROM zoo WHERE nombre = $1', [nombre])
+        res.status(200).json({'Status': 'ok', 'message': 'Tu registro fue eliminado exitosamente'})
+
+    } catch (error) {
+        res.status(500).json({'error': error.message})
+    }
+}
+
 const sinDatos = (consulta, res) => {
     if(consulta.rowCount === 0){
         res.status(200).json({'Status': 'No existe registro'})
@@ -172,5 +191,6 @@ module.exports = {
     getAnimales,
     getZoo,
     getEspecies,
-    addZoo
+    addZoo,
+    deleteZoo
 }
